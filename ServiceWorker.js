@@ -1,9 +1,9 @@
 const cacheName = "Digital Clay-Colombia Asombrosa-1.1";
 const contentToCache = [
-    "Build/Builds.loader.js",
-    "Build/Builds.framework.js.br",
-    "Build/Builds.data.br",
-    "Build/Builds.wasm.br",
+    "Build/ColombiAsombrosa.loader.js",
+    "Build/ColombiAsombrosa.framework.js.unityweb",
+    "Build/ColombiAsombrosa.data.unityweb",
+    "Build/ColombiAsombrosa.wasm.unityweb",
     "TemplateData/style.css"
 
 ];
