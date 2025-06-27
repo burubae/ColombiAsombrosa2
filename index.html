@@ -147,6 +147,14 @@
           productName: "Colombia Asombrosa",
           productVersion: "1.1",
           showBanner: unityShowBanner,
+		 // Disable the button after clicking
+        let button = document.getElementById("startARButton");
+        button.disabled = true;
+        button.style.display = "none";
+        // Disable the selector after clicking
+        let select = document.getElementById("chooseCamSel");
+        select.disabled = true;
+        select.style.display = "none";
         };
         // By default Unity keeps WebGL canvas render target size matched with
         // the DOM size of the canvas element (scaled by window.devicePixelRatio)
