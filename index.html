@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unity WebGL Player | Colombia Asombrosa</title>
+    <title>Colombia Asombrosa</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
     <link rel="manifest" href="manifest.webmanifest">
@@ -26,8 +26,8 @@
     <div id="startARDiv" class="ctaDiv" style="background: #2f2e32">
       <select id="chooseCamSel" aria-label="Seleccionar cámara" style="visibility: hidden; background: transparent; border: .05vh solid white; border-radius: max(0.5vw, 0.5vh); color:white; font-size: max(1.5vw, 1.5vh); position: absolute; bottom: 80px" 
         onchange="SelectCam()"></select>
-      <p style="text-align: center; width:min(60vw, 60vh);">This augmented reality experience requires access to your device's camera</p>
-      <button id="startARButton" onclick="StartAR()" style="visibility: hidden">ALLOW ACCESS</button>
+      <p style="text-align: center; width:min(60vw, 60vh);">Esta experiencia de realidad aumentada requiere acceso a la cámara de tu dispositivo</p>
+      <button id="startARButton" onclick="StartAR()" style="visibility: hidden">PERMITIR ACCESO</button>
       <br><br><br>
     </div>
     <div id="screenshotDiv" style="visibility: hidden; opacity: 0;" class="ctaDiv">
@@ -39,7 +39,7 @@
               <line x1="3" y1="21" x2="21" y2="3" stroke="#999" stroke-width="2.5"></line>
             </svg>
           </button> 
-          <p style="font-size: max(1vw, 1vh); color: #fff6" >Press and hold to save or share this screenshot</p>
+          <p style="font-size: max(1vw, 1vh); color: #fff6" >Manten presionado para guardar o compartir esta foto</p>
           </div>
     </div>
     <div id="confirmUrlDiv" style="visibility: hidden; opacity: 0;" class="ctaDiv">
@@ -47,8 +47,8 @@
 ">
             <p id="confirmUrlText" style="text-align: center; width:80%; overflow: hidden; text-overflow: ellipsis;">Are you sure you want to visit url.com?</p>
             <div style="width: 100%">
-                <button style="width: 100%; margin-bottom: 15px;" onclick="window.open(newUrlString, '_blank').focus(); HideConfirmUrl()">VISIT SITE</button>
-                <button style="width: 100%" onclick="HideConfirmUrl()">GO BACK</button>
+                <button style="width: 100%; margin-bottom: 15px;" onclick="window.open(newUrlString, '_blank').focus(); HideConfirmUrl()">VISITAR SITIO</button>
+                <button style="width: 100%" onclick="HideConfirmUrl()">ATRAS</button>
             </div>
         </div>
     </div>
