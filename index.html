@@ -388,6 +388,39 @@
           //place global settings here
           INTERNAL_SMOOTHFACTOR_POS: .075,
       }
+	    <script>
+  let frames = [];
+  let intervalId;
+
+  window.StartJSRecording = function(frameRate) {
+    const canvas = document.querySelector("canvas"); // O usa '#canvas' si tiene un ID
+    frames = [];
+    intervalId = setInterval(() => {
+      const frame = canvas.toDataURL("image/webp");
+      frames.push(frame);
+    }, 1000 / (frameRate || 10));
+  };
+
+  window.StopJSRecording = function() {
+    clearInterval(intervalId);
+    enviarFramesAlServidor(frames);
+  };
+
+  async function enviarFramesAlServidor(frames) {
+    const res = await fetch("/api/generar-video", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ frames, fps: 10 }) // Puedes ajustar el fps aquí también
+    });
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "grabacion_ar.mp4";
+    a.click();
+  }
+</script>
     </script>
   </body>
 </html>
