@@ -396,7 +396,15 @@
   let audioStream;
   let combinedStream;
 
-  window.StartJSRecording = async function (frameRate) {
+  window.StartJSRecording = async function (frameRate) 
+  {
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+
+  if (isIOS) {
+    alert("⚠️ Estás en Safari iOS. El navegador no permite grabar audio desde la escena WebAR. Si deseas capturar audio y video, puedes usar la grabación de pantalla del sistema desde el Centro de Control 📱");
+  }
+
+
     const canvas = document.querySelector("canvas");
     recordedChunks = [];
 
