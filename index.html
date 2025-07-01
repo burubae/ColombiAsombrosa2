@@ -456,6 +456,13 @@
       mediaRecorder.stop();
     }
   };
+	if (combinedStream.getVideoTracks().length === 0) {
+  alert("⚠️ No se detectó contenido visual. ¿Tu canvas está visible?");
+}
+
+if (combinedStream.getAudioTracks().length === 0) {
+  console.warn("No se detectó pista de audio.");
+}
 </script>
 
 
