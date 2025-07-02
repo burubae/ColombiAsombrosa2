@@ -405,12 +405,11 @@ const BACKEND_URL = "https://colombia-asombrosa-backend-grabadora.onrender.com";
 
 window.StartJSRecording = async function (frameRate = 10) {
   const canvas = document.querySelector("canvas");
-  streamId = Date.now(); // GLOBAL: se reutiliza para toda la sesión
-
+  streamId = Date.now(); // global para toda la sesión
   isRecording = true;
   audioChunks = [];
 
-  // 🎤 AUDIO
+  // 🎤 Captura de audio
   try {
     audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(audioStream);
@@ -422,7 +421,7 @@ window.StartJSRecording = async function (frameRate = 10) {
     console.warn("🎤 No se pudo capturar audio:", e);
   }
 
-  // 🎥 VIDEO
+  // 🎥 Captura de video (frames)
   let frameCount = 0;
   frameInterval = setInterval(() => {
     if (!isRecording) return;
@@ -445,29 +444,46 @@ window.StopJSRecording = function () {
 
   if (mediaRecorder && mediaRecorder.state !== "inactive") {
     mediaRecorder.onstop = () => {
-      const blob = new Blob(audioChunks, { type: "audio/webm" });
+      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
       const formData = new FormData();
-      formData.append("audio", blob);
+      formData.append("audio", audioBlob);
       formData.append("streamId", streamId);
 
-      // Mostrar mensaje de carga
-      const loadingDiv = document.createElement("div");
-      loadingDiv.textContent = "🎬 Procesando video...";
-      Object.assign(loadingDiv.style, {
+      // 🎬 Mostrar loader centrado
+      const loaderWrapper = document.createElement("div");
+      loaderWrapper.innerHTML = `
+        <div style="
+          background: rgba(0,0,0,0.75);
+          color: white;
+          padding: 1.5rem 2rem;
+          border-radius: 12px;
+          font-family: sans-serif;
+          text-align: center;
+          animation: fadeIn 0.3s ease-in-out;
+        ">
+          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎬</div>
+          <div style="font-size: 1.2rem;">Procesando video...</div>
+        </div>
+      `;
+      Object.assign(loaderWrapper.style, {
         position: "fixed",
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        background: "#222",
-        color: "#fff",
-        padding: "1rem 2rem",
-        borderRadius: "10px",
-        fontFamily: "sans-serif",
         zIndex: 9999
       });
-      document.body.appendChild(loadingDiv);
+      document.body.appendChild(loaderWrapper);
 
-      // Subir audio y finalizar video
+      const style = document.createElement("style");
+      style.textContent = `
+        @keyframes fadeIn {
+          0% { opacity: 0; transform: scale(0.95) translate(-50%, -50%); }
+          100% { opacity: 1; transform: scale(1) translate(-50%, -50%); }
+        }
+      `;
+      document.head.appendChild(style);
+
+      // 🚀 Subir audio y pedir ensamblado final
       fetch(`${BACKEND_URL}/upload-audio`, { method: "POST", body: formData })
         .then(() =>
           fetch(`${BACKEND_URL}/finalize`, {
@@ -478,10 +494,10 @@ window.StopJSRecording = function () {
         )
         .then(res => res.blob())
         .then(videoBlob => {
-          // Ocultar mensaje
-          document.body.removeChild(loadingDiv);
+          // 🧼 Eliminar loader
+          document.body.removeChild(loaderWrapper);
 
-          // Descargar video
+          // 🎉 Descargar el video final
           const url = URL.createObjectURL(videoBlob);
           const a = document.createElement("a");
           a.href = url;
