@@ -404,7 +404,7 @@ let streamId = null;
 const BACKEND_URL = "https://colombia-asombrosa-backend-grabadora.onrender.com";
 
 window.StartJSRecording = async function (frameRate = 10) {
-  const canvas = document.querySelector("unity-canvas");
+  const canvas = document.querySelector("#unity-canvas");
   streamId = Date.now();
   isRecording = true;
   audioChunks = [];
