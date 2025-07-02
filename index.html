@@ -39,7 +39,7 @@
               <line x1="3" y1="21" x2="21" y2="3" stroke="#999" stroke-width="2.5"></line>
             </svg>
           </button> 
-          <p style="font-size: max(1vw, 1vh); color: #fff6" >Manten presionado para guardar o compartir esta foto</p>
+          <p style="font-size: max(1vw, 1vh); color: #fff6" >MANTEN PRESIONADO PARA GUARDAR O COMPARTIR ESTA FOTO</p>
           </div>
     </div>
     <div id="confirmUrlDiv" style="visibility: hidden; opacity: 0;" class="ctaDiv">
@@ -446,17 +446,29 @@
         formData.append("audio", blob);
         formData.append("streamId", Date.now()); // mismo ID de la sesión
 
-        fetch("/upload-audio", { method: "POST", body: formData })
-          .then(() => fetch("/finalize", { method: "POST", body: JSON.stringify({ streamId: Date.now() }), headers: { 'Content-Type': 'application/json' } }))
-          .then(res => res.blob())
-          .then(videoBlob => {
-            const url = URL.createObjectURL(videoBlob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "grabacion_final.mp4";
-            a.click();
-            URL.revokeObjectURL(url);
-          });
+       const BACKEND_URL = "https://colombia-asombrosa-backend-grabadora.onrender.com";
+const streamId = Date.now(); // o guarda el mismo ID global usado antes
+
+fetch(`${BACKEND_URL}/upload-audio`, {
+  method: "POST",
+  body: formData
+})
+.then(() =>
+  fetch(`${BACKEND_URL}/finalize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ streamId }) // usa el mismo ID con el que subiste los frames
+  })
+)
+.then(res => res.blob())
+.then(videoBlob => {
+  const url = URL.createObjectURL(videoBlob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "grabacion_final.mp4";
+  a.click();
+  URL.revokeObjectURL(url);
+});
       };
 
       mediaRecorder.stop();
