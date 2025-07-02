@@ -131,81 +131,7 @@
         updateBannerVisibility();
       }
     </script>
-	    <script>
-  let mediaRecorder;
-  let recordedChunks = [];
-  let canvasStream;
-  let audioStream;
-  let combinedStream;
-
-  window.StartJSRecording = async function (frameRate) 
-  {
-  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-
-  if (isIOS) {
-    alert("⚠️ Estás en Safari iOS. El navegador no permite grabar audio desde la escena WebAR. Si deseas capturar audio y video, puedes usar la grabación de pantalla del sistema desde el Centro de Control 📱");
-  }
-
-
-    const canvas = document.querySelector("canvas");
-    recordedChunks = [];
-
-    // 🔹 Paso 1: Capturar video del canvas
-    canvasStream = canvas.captureStream(frameRate || 10);
-
-    // 🔹 Paso 2: Intentar capturar el audio de la Web Audio API (Unity)
-    const audioCtx = new AudioContext();
-    const destination = audioCtx.createMediaStreamDestination();
-
-    try {
-      const contextScriptNode = audioCtx.createScriptProcessor(2048, 1, 1);
-      contextScriptNode.connect(destination);
-      contextScriptNode.connect(audioCtx.destination); // Previene "no se escucha"
-
-      // Unity usa Web Audio internamente, así que en muchos casos ya está conectado al AudioContext
-    } catch (e) {
-      console.warn("No se pudo conectar audio WebGL:", e);
-    }
-
-    // 🔹 Paso 3: Combinar video + audio (si existe)
-    combinedStream = new MediaStream([
-      ...canvasStream.getVideoTracks(),
-      ...destination.stream.getAudioTracks()
-    ]);
-
-    // 🔹 Paso 4: Configurar grabadora
-    mediaRecorder = new MediaRecorder(combinedStream, { mimeType: "video/webm" });
-
-    mediaRecorder.ondataavailable = e => {
-      if (e.data.size > 0) recordedChunks.push(e.data);
-    };
-
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(recordedChunks, { type: "video/webm" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "grabacion_con_audio.webm";
-      a.click();
-      URL.revokeObjectURL(url);
-    };
-
-    mediaRecorder.start();
-  };
-
-  window.StopJSRecording = function () {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      mediaRecorder.stop();
-    }
-  };
-	if (combinedStream.getVideoTracks().length === 0) {
-  alert("⚠️ No se detectó contenido visual. ¿Tu canvas está visible?");
-}
-
-if (combinedStream.getAudioTracks().length === 0) {
-  console.warn("No se detectó pista de audio.");
-}
-
+	   
 	  <script>
       function StartAR() {
 	       // Disable the button after clicking
@@ -465,9 +391,78 @@ if (combinedStream.getAudioTracks().length === 0) {
           //place global settings here
           INTERNAL_SMOOTHFACTOR_POS: .075,
       }
-	      </script>
+	      
 </script>
+<script>
+  let isRecording = false;
+  let frameInterval;
+  let audioStream;
+  let mediaRecorder;
+  let audioChunks = [];
 
+  window.StartJSRecording = async function (frameRate = 10) {
+    const canvas = document.querySelector("canvas");
+    const streamId = Date.now(); // ID para identificar esta grabación
+
+    isRecording = true;
+
+    // 🔹 AUDIO
+    try {
+      audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(audioStream);
+      mediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+      mediaRecorder.start();
+    } catch (e) {
+      console.warn("🎤 No se pudo capturar audio:", e);
+    }
+
+    // 🔹 VIDEO
+    let frameCount = 0;
+    frameInterval = setInterval(() => {
+      if (!isRecording) return;
+
+      canvas.toBlob(blob => {
+        if (blob) {
+          const formData = new FormData();
+          formData.append("frame", blob, `frame_${String(frameCount).padStart(4, '0')}.jpg`);
+          formData.append("streamId", streamId);
+          fetch("/upload-frame", { method: "POST", body: formData });
+          frameCount++;
+        }
+      }, "image/jpeg");
+    }, 1000 / frameRate);
+  };
+
+  window.StopJSRecording = function () {
+    isRecording = false;
+    clearInterval(frameInterval);
+
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunks, { type: "audio/webm" });
+        const formData = new FormData();
+        formData.append("audio", blob);
+        formData.append("streamId", Date.now()); // mismo ID de la sesión
+
+        fetch("/upload-audio", { method: "POST", body: formData })
+          .then(() => fetch("/finalize", { method: "POST", body: JSON.stringify({ streamId: Date.now() }), headers: { 'Content-Type': 'application/json' } }))
+          .then(res => res.blob())
+          .then(videoBlob => {
+            const url = URL.createObjectURL(videoBlob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "grabacion_final.mp4";
+            a.click();
+            URL.revokeObjectURL(url);
+          });
+      };
+
+      mediaRecorder.stop();
+    }
+  };
+</script>
 
    
   </body>
