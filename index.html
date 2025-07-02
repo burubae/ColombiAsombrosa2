@@ -394,7 +394,6 @@
 	      
 </script>
 <script>
-
 let isRecording = false;
 let frameInterval;
 let audioStream;
@@ -418,7 +417,7 @@ window.StartJSRecording = async function (frameRate = 10) {
     };
     mediaRecorder.start();
   } catch (e) {
-    console.warn("🎤 Error al capturar audio:", e);
+    console.warn("🎤 No se pudo capturar audio:", e);
   }
 
   let frameCount = 0;
@@ -428,8 +427,8 @@ window.StartJSRecording = async function (frameRate = 10) {
     canvas.toBlob(blob => {
       if (blob) {
         const formData = new FormData();
-        formData.append("frame", blob, `frame_${String(frameCount).padStart(4, '0')}.jpg`);
-        formData.append("streamId", streamId);
+        const filename = `${streamId}_frame_${String(frameCount).padStart(4, '0')}.jpg`;
+        formData.append("frame", blob, filename);
         fetch(`${BACKEND_URL}/upload-frame`, { method: "POST", body: formData });
         frameCount++;
       }
@@ -445,12 +444,11 @@ window.StopJSRecording = function () {
     mediaRecorder.onstop = () => {
       const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
       const formData = new FormData();
-      formData.append("audio", audioBlob);
-      formData.append("streamId", streamId);
+      formData.append("audio", audioBlob, `${streamId}_audio.webm`);
 
-      // 🎬 Overlay centrado
-      const loaderWrapper = document.createElement("div");
-      loaderWrapper.innerHTML = `
+      // Loader visual
+      const loader = document.createElement("div");
+      loader.innerHTML = `
         <div style="
           background: rgba(0,0,0,0.8);
           color: white;
@@ -459,31 +457,30 @@ window.StopJSRecording = function () {
           font-family: sans-serif;
           text-align: center;
           box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-          animation: fadeIn 0.3s ease-out;
+          animation: fadeIn 0.3s ease;
         ">
           <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎬</div>
           <div style="font-size: 1.2rem;">Procesando video...</div>
         </div>
       `;
-      Object.assign(loaderWrapper.style, {
+      Object.assign(loader.style, {
         position: "fixed",
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
         zIndex: 9999
       });
-      document.body.appendChild(loaderWrapper);
+      document.body.appendChild(loader);
 
-      // Estilos de animación
       const style = document.createElement("style");
       style.textContent = `
         @keyframes fadeIn {
           from { opacity: 0; transform: scale(0.95) translate(-50%, -50%); }
           to   { opacity: 1; transform: scale(1) translate(-50%, -50%); }
-        }`;
+        }
+      `;
       document.head.appendChild(style);
 
-      // Subir audio y solicitar finalización
       fetch(`${BACKEND_URL}/upload-audio`, { method: "POST", body: formData })
         .then(() =>
           fetch(`${BACKEND_URL}/finalize`, {
@@ -494,7 +491,7 @@ window.StopJSRecording = function () {
         )
         .then(res => res.blob())
         .then(videoBlob => {
-          document.body.removeChild(loaderWrapper);
+          document.body.removeChild(loader);
           const url = URL.createObjectURL(videoBlob);
           const a = document.createElement("a");
           a.href = url;
@@ -507,7 +504,6 @@ window.StopJSRecording = function () {
     mediaRecorder.stop();
   }
 };
-
 </script>
 
    
