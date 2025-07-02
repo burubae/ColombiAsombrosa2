@@ -394,86 +394,106 @@
 	      
 </script>
 <script>
-  let isRecording = false;
-  let frameInterval;
-  let audioStream;
-  let mediaRecorder;
-  let audioChunks = [];
+let isRecording = false;
+let frameInterval;
+let audioStream;
+let mediaRecorder;
+let audioChunks = [];
+let streamId = null;
 
-  window.StartJSRecording = async function (frameRate = 10) {
-    const canvas = document.querySelector("canvas");
-    const streamId = Date.now(); // ID para identificar esta grabación
+const BACKEND_URL = "https://colombia-asombrosa-backend-grabadora.onrender.com";
 
-    isRecording = true;
+window.StartJSRecording = async function (frameRate = 10) {
+  const canvas = document.querySelector("canvas");
+  streamId = Date.now(); // GLOBAL: se reutiliza para toda la sesión
 
-    // 🔹 AUDIO
-    try {
-      audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(audioStream);
-      mediaRecorder.ondataavailable = e => {
-        if (e.data.size > 0) audioChunks.push(e.data);
-      };
-      mediaRecorder.start();
-    } catch (e) {
-      console.warn("🎤 No se pudo capturar audio:", e);
-    }
+  isRecording = true;
+  audioChunks = [];
 
-    // 🔹 VIDEO
-    let frameCount = 0;
-    frameInterval = setInterval(() => {
-      if (!isRecording) return;
+  // 🎤 AUDIO
+  try {
+    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(audioStream);
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+    mediaRecorder.start();
+  } catch (e) {
+    console.warn("🎤 No se pudo capturar audio:", e);
+  }
 
-      canvas.toBlob(blob => {
-        if (blob) {
-          const formData = new FormData();
-          formData.append("frame", blob, `frame_${String(frameCount).padStart(4, '0')}.jpg`);
-          formData.append("streamId", streamId);
-          fetch("/upload-frame", { method: "POST", body: formData });
-          frameCount++;
-        }
-      }, "image/jpeg");
-    }, 1000 / frameRate);
-  };
+  // 🎥 VIDEO
+  let frameCount = 0;
+  frameInterval = setInterval(() => {
+    if (!isRecording) return;
 
-  window.StopJSRecording = function () {
-    isRecording = false;
-    clearInterval(frameInterval);
-
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(audioChunks, { type: "audio/webm" });
+    canvas.toBlob(blob => {
+      if (blob) {
         const formData = new FormData();
-        formData.append("audio", blob);
-        formData.append("streamId", Date.now()); // mismo ID de la sesión
+        formData.append("frame", blob, `frame_${String(frameCount).padStart(4, '0')}.jpg`);
+        formData.append("streamId", streamId);
+        fetch(`${BACKEND_URL}/upload-frame`, { method: "POST", body: formData });
+        frameCount++;
+      }
+    }, "image/jpeg");
+  }, 1000 / frameRate);
+};
 
-       const BACKEND_URL = "https://colombia-asombrosa-backend-grabadora.onrender.com";
-const streamId = Date.now(); // o guarda el mismo ID global usado antes
+window.StopJSRecording = function () {
+  isRecording = false;
+  clearInterval(frameInterval);
 
-fetch(`${BACKEND_URL}/upload-audio`, {
-  method: "POST",
-  body: formData
-})
-.then(() =>
-  fetch(`${BACKEND_URL}/finalize`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ streamId }) // usa el mismo ID con el que subiste los frames
-  })
-)
-.then(res => res.blob())
-.then(videoBlob => {
-  const url = URL.createObjectURL(videoBlob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "grabacion_final.mp4";
-  a.click();
-  URL.revokeObjectURL(url);
-});
-      };
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(audioChunks, { type: "audio/webm" });
+      const formData = new FormData();
+      formData.append("audio", blob);
+      formData.append("streamId", streamId);
 
-      mediaRecorder.stop();
-    }
-  };
+      // Mostrar mensaje de carga
+      const loadingDiv = document.createElement("div");
+      loadingDiv.textContent = "🎬 Procesando video...";
+      Object.assign(loadingDiv.style, {
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        background: "#222",
+        color: "#fff",
+        padding: "1rem 2rem",
+        borderRadius: "10px",
+        fontFamily: "sans-serif",
+        zIndex: 9999
+      });
+      document.body.appendChild(loadingDiv);
+
+      // Subir audio y finalizar video
+      fetch(`${BACKEND_URL}/upload-audio`, { method: "POST", body: formData })
+        .then(() =>
+          fetch(`${BACKEND_URL}/finalize`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ streamId })
+          })
+        )
+        .then(res => res.blob())
+        .then(videoBlob => {
+          // Ocultar mensaje
+          document.body.removeChild(loadingDiv);
+
+          // Descargar video
+          const url = URL.createObjectURL(videoBlob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "grabacion_final.mp4";
+          a.click();
+          URL.revokeObjectURL(url);
+        });
+    };
+
+    mediaRecorder.stop();
+  }
+};
 </script>
 
    
