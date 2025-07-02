@@ -1,4 +1,4 @@
-const cacheName = "Digital Clay-Colombia Asombrosa-1.1";
+const cacheName = "DigitalClay-ColombiaAsombrosa-v1.1";
 const contentToCache = [
   "Build/ColombiAsombrosa.loader.js",
   "Build/ColombiAsombrosa.framework.js.unityweb",
@@ -7,19 +7,25 @@ const contentToCache = [
   "TemplateData/style.css"
 ];
 
-self.addEventListener("install", function (e) {
-  console.log("[Service Worker] Install");
-
-  e.waitUntil(
+// 📦 Carga inicial al instalar
+self.addEventListener("install", event => {
+  console.log("[SW] Instalando...");
+  event.waitUntil(
     caches.open(cacheName).then(cache => {
-      console.log("[Service Worker] Caching app shell");
+      console.log("[SW] Cacheando assets iniciales...");
       return cache.addAll(contentToCache);
     })
   );
 });
 
-self.addEventListener("fetch", function (event) {
+// ⚙️ Responde a solicitudes de red
+self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
+
+  // 🚫 Ignora requests que no son GET (POST, etc.)
+  if (event.request.method !== "GET") return;
+
+  // 🚫 Ignora extensiones y protocolos raros
   if (!url.protocol.startsWith("http")) return;
 
   event.respondWith(
