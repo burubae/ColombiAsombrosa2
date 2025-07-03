@@ -164,7 +164,12 @@
     return "no-store";
   },
   arguments: [],
-  workerUrl: buildUrl + "/ColombiAsombrosa.data.unityweb" // workaround para evitar error del loader	 
+  workerUrl: buildUrl + "/ColombiAsombrosa.data.unityweb", // workaround para evitar error del loader	 
+	        webglContextAttributes: {
+    preserveDrawingBuffer: true
+  }
+
+
         };
 	     
         // By default Unity keeps WebGL canvas render target size matched with
