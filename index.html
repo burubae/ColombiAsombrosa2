@@ -131,6 +131,21 @@
         updateBannerVisibility();
       }
     </script>
+	  <script>
+  var unityInstance = UnityLoader.instantiate("unity-container", "Build/build.json", {
+    onProgress: UnityProgress,
+    Module: {
+      onRuntimeInitialized: function () {
+        if (typeof Module.audioContext !== "undefined") {
+          window.UnityAudioContext = Module.audioContext;
+          console.log("🔊 UnityAudioContext disponible");
+        } else {
+          console.warn("⚠️ Module.audioContext no está disponible");
+        }
+      }
+    }
+  });
+</script>
 	   
 	  <script>
       function StartAR() {
