@@ -194,33 +194,26 @@
   progressBarFull.style.width = 100 * progress + "%";
 }).then((unityInstance) => {
   loadingBar.style.display = "none";
-  window.unityInstance = unityInstance;
-
-  // 🧠 Espera activa para que ExposeUnityAudioContext esté disponible
-  let attempt = 0;
-  const maxRetries = 15;
-  const interval = 400;
-
-  const tryExposeAudio = () => {
-    if (typeof ExposeUnityAudioContext === "function") {
-      console.log("🔊 ExposeUnityAudioContext disponible. Ejecutando...");
-      ExposeUnityAudioContext();
-    } else {
-      if (attempt < maxRetries) {
-        console.warn(`⏳ Intento ${attempt + 1}: ExposeUnityAudioContext aún no disponible`);
-        attempt++;
-        setTimeout(tryExposeAudio, interval);
-      } else {
-        console.error("❌ ExposeUnityAudioContext no apareció tras múltiples intentos");
-      }
-    }
-  };
-
-  tryExposeAudio();
-
-  if (window.permissionsGranted) {
+  window.unityInstance = unityInstance; 
+		    if (window.permissionsGranted) {
     RequestWebcam();
   }
+		    tryExposeAudio();
+		setTimeout(() => {
+  if (typeof ExposeUnityAudioContext === "function") {
+    console.log("🧠 Ejecutando ExposeUnityAudioContext desde JS tras espera");
+    ExposeUnityAudioContext();
+  } else {
+    console.warn("❌ La función aún no está disponible");
+  }
+}, 2500);
+
+
+
+
+
+
+
 }).catch((message) => {
   alert("Error al cargar Unity: " + message);
   console.error("Unity Loader Error:", message);
