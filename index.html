@@ -195,6 +195,14 @@
 }).then((unityInstance) => {
   loadingBar.style.display = "none";
   window.unityInstance = unityInstance;
+		  // 👁️ Verificador post-inicialización
+setTimeout(() => {
+  console.log("🔍 Verificando contexto JS...");
+  console.log("typeof ExposeUnityAudioContext:", typeof ExposeUnityAudioContext);
+  console.log("typeof Module:", typeof Module);
+  console.log("Module.audioContext:", Module && Module.audioContext);
+  console.log("window.UnityAudioContext:", window.UnityAudioContext);
+}, 2000);
 
   // 🧠 Espera activa para que ExposeUnityAudioContext esté disponible
   let attempt = 0;
