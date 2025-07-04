@@ -196,12 +196,27 @@
   loadingBar.style.display = "none";
   window.unityInstance = unityInstance;
 
-  // ⚡️ Exponer el AudioContext de Unity al terminar la carga
-  if (typeof ExposeUnityAudioContext === "function") {
-    ExposeUnityAudioContext();
-  } else {
-    console.warn("ExposeUnityAudioContext no está definida aún");
-  }
+  // 🧠 Espera activa para que ExposeUnityAudioContext esté disponible
+  let attempt = 0;
+  const maxRetries = 15;
+  const interval = 400;
+
+  const tryExposeAudio = () => {
+    if (typeof ExposeUnityAudioContext === "function") {
+      console.log("🔊 ExposeUnityAudioContext disponible. Ejecutando...");
+      ExposeUnityAudioContext();
+    } else {
+      if (attempt < maxRetries) {
+        console.warn(`⏳ Intento ${attempt + 1}: ExposeUnityAudioContext aún no disponible`);
+        attempt++;
+        setTimeout(tryExposeAudio, interval);
+      } else {
+        console.error("❌ ExposeUnityAudioContext no apareció tras múltiples intentos");
+      }
+    }
+  };
+
+  tryExposeAudio();
 
   if (window.permissionsGranted) {
     RequestWebcam();
@@ -423,27 +438,26 @@ window.StartJSRecording = async function (frameRate = 10) {
   audioChunks = [];
 
   try {
-    if (!window.UnityAudioContext) {
-      throw new Error("UnityAudioContext no está disponible. Asegúrate de ejecutar ExposeUnityAudioContext() desde Unity.");
+    if (!window.UnityAudioContext || !UnityAudioContext.createMediaStreamDestination) {
+      console.warn("🎧 UnityAudioContext no disponible. Grabando sin audio.");
+    } else {
+      const destination = UnityAudioContext.createMediaStreamDestination();
+      UnityAudioContext.destination.connect(destination);
+      audioStream = destination.stream;
+
+      mediaRecorder = new MediaRecorder(audioStream);
+      mediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+      mediaRecorder.start();
     }
-
-    const destination = UnityAudioContext.createMediaStreamDestination();
-    UnityAudioContext.destination.connect(destination);
-    audioStream = destination.stream;
-
-    mediaRecorder = new MediaRecorder(audioStream);
-    mediaRecorder.ondataavailable = e => {
-      if (e.data.size > 0) audioChunks.push(e.data);
-    };
-    mediaRecorder.start();
   } catch (e) {
-    console.warn("🎧 No se pudo capturar audio desde Unity:", e);
+    console.warn("🎧 Error al inicializar audio:", e);
   }
 
   let frameCount = 0;
   frameInterval = setInterval(() => {
     if (!isRecording) return;
-
     canvas.toBlob(blob => {
       if (blob) {
         const formData = new FormData();
