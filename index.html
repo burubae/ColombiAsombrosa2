@@ -131,21 +131,7 @@
         updateBannerVisibility();
       }
     </script>
-	  <script>
-  var unityInstance = UnityLoader.instantiate("unity-container", "Build/build.json", {
-    onProgress: UnityProgress,
-    Module: {
-      onRuntimeInitialized: function () {
-        if (typeof Module.audioContext !== "undefined") {
-          window.UnityAudioContext = Module.audioContext;
-          console.log("🔊 UnityAudioContext disponible");
-        } else {
-          console.warn("⚠️ Module.audioContext no está disponible");
-        }
-      }
-    }
-  });
-</script>
+	 
 	   
 	  <script>
       function StartAR() {
@@ -209,6 +195,13 @@
 }).then((unityInstance) => {
   loadingBar.style.display = "none";
   window.unityInstance = unityInstance;
+
+  // ⚡️ Exponer el AudioContext de Unity al terminar la carga
+  if (typeof ExposeUnityAudioContext === "function") {
+    ExposeUnityAudioContext();
+  } else {
+    console.warn("ExposeUnityAudioContext no está definida aún");
+  }
 
   if (window.permissionsGranted) {
     RequestWebcam();
