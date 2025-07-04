@@ -194,25 +194,22 @@
   progressBarFull.style.width = 100 * progress + "%";
 }).then((unityInstance) => {
   loadingBar.style.display = "none";
-  window.unityInstance = unityInstance; 
-		    if (window.permissionsGranted) {
+  window.unityInstance = unityInstance;
+
+  // 🎥 Verificar permisos de cámara
+  if (window.permissionsGranted) {
     RequestWebcam();
   }
-		   // tryExposeAudio();
-		setTimeout(() => {
-  if (typeof ExposeUnityAudioContext === "function") {
-    console.log("🧠 Ejecutando ExposeUnityAudioContext desde JS tras espera");
-    ExposeUnityAudioContext();
-  } else {
-    console.warn("❌ La función aún no está disponible");
-  }
-}, 2500);
 
-
-
-
-
-
+  // 🎧 Exponer el UnityAudioContext después de que Unity esté listo
+  setTimeout(() => {
+    if (typeof ExposeUnityAudioContext === "function") {
+      console.log("🧠 Ejecutando ExposeUnityAudioContext desde JS tras init");
+      ExposeUnityAudioContext();
+    } else {
+      console.warn("❌ La función ExposeUnityAudioContext aún no está disponible");
+    }
+  }, 2500); // ajusta si tu build necesita más tiempo
 
 }).catch((message) => {
   alert("Error al cargar Unity: " + message);
