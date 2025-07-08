@@ -192,6 +192,25 @@
     }).then((unityInstance) => {
       loadingBar.style.display = "none";
       window.unityInstance = unityInstance;
+	    // 🔍 Diagnóstico WebAssembly y entorno Unity
+
+console.log("🧪 🔹 Unity Instance");
+console.log("▶️ window.unityInstance:", window.unityInstance);
+console.log("▶️ window.unityInstance.Module:", window.unityInstance?.Module);
+console.log("▶️ window.unityInstance.Module.audioContext:", window.unityInstance?.Module?.audioContext);
+
+console.log("\n🧪 🔹 Module JS");
+console.log("▶️ typeof Module:", typeof Module);
+console.log("▶️ Module keys:", Object.keys(Module || {}));
+console.log("▶️ Module.audioContext:", Module?.audioContext);
+
+console.log("\n🧪 🔹 LibraryManager");
+console.log("▶️ typeof LibraryManager:", typeof LibraryManager);
+console.log("▶️ typeof LibraryManager.library:", typeof LibraryManager?.library);
+
+console.log("\n🧪 🔹 Función ExposeUnityAudioContext");
+console.log("▶️ typeof ExposeUnityAudioContext:", typeof ExposeUnityAudioContext);
+console.log("▶️ window.UnityAudioContext:", window.UnityAudioContext ?? "❌ No definido");
 
       // 🎥 Cámara
       if (window.permissionsGranted) {
