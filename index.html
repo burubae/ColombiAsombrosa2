@@ -134,90 +134,88 @@
 	 
 	   
 	  <script>
-      function StartAR() {
-	       // Disable the button after clicking
-        let button = document.getElementById("startARButton");
-        button.disabled = true;
-        button.style.display = "none";
-        // Disable the selector after clicking
-        let select = document.getElementById("chooseCamSel");
-        select.disabled = true;
-        select.style.display = "none";
-        var startARDiv = document.querySelector("#startARDiv");
-        startARDiv.style.opacity = 0;
-        setTimeout(()=>{
-          startARDiv.style.visibility = "hidden";
-        }, 500);
-        var buildUrl = "Build";
-        var loaderUrl = buildUrl + "/ColombiAsombrosa.loader.js";
-       var config = {
-  dataUrl: buildUrl + "/ColombiAsombrosa.data.unityweb",
-  frameworkUrl: buildUrl + "/ColombiAsombrosa.framework.js.unityweb",
-  codeUrl: buildUrl + "/ColombiAsombrosa.wasm.unityweb",
-  streamingAssetsUrl: "StreamingAssets",
-  companyName: "Digital Clay",
-  productName: "Colombia Asombrosa",
-  productVersion: "1.1",
-  showBanner: unityShowBanner,
-  cacheControl: function (url) {
-    if (!url) return "no-store";
-    if (url.match(/\.data/) || url.match(/\.bundle/)) return "must-revalidate";
-    return "no-store";
-  },
-  arguments: [],
-  workerUrl: buildUrl + "/ColombiAsombrosa.data.unityweb", // workaround para evitar error del loader	 
-	        webglContextAttributes: {
-    preserveDrawingBuffer: true
-  }
+     function StartAR() {
+  // 🔒 UI inicial
+  let button = document.getElementById("startARButton");
+  button.disabled = true;
+  button.style.display = "none";
 
+  let select = document.getElementById("chooseCamSel");
+  select.disabled = true;
+  select.style.display = "none";
 
-        };
-	     
-        // By default Unity keeps WebGL canvas render target size matched with
-        // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-        // Set this to false if you want to decouple this synchronization from
-        // happening inside the engine, and you would instead like to size up
-        // the canvas DOM size and WebGL render target sizes yourself.
-        // config.matchWebGLToCanvasSize = false;
-        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-          // Mobile device style: fill the whole browser client area with the game canvas:
-          var meta = document.createElement('meta');
-          meta.name = 'viewport';
-          meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-          document.getElementsByTagName('head')[0].appendChild(meta);
-        }
-        loadingBar.style.display = "block";
-        var script = document.createElement("script");
-        script.src = loaderUrl;
-        script.onload = () => {
-          createUnityInstance(canvas, config, (progress) => {
-  progressBarFull.style.width = 100 * progress + "%";
-}).then((unityInstance) => {
-  loadingBar.style.display = "none";
-  window.unityInstance = unityInstance;
-
-  // 🎥 Verificar permisos de cámara
-  if (window.permissionsGranted) {
-    RequestWebcam();
-  }
-
-  // 🎧 Exponer el UnityAudioContext después de que Unity esté listo
+  var startARDiv = document.querySelector("#startARDiv");
+  startARDiv.style.opacity = 0;
   setTimeout(() => {
-    if (typeof ExposeUnityAudioContext === "function") {
-      console.log("🧠 Ejecutando ExposeUnityAudioContext desde JS tras init");
-      ExposeUnityAudioContext();
-    } else {
-      console.warn("❌ La función ExposeUnityAudioContext aún no está disponible");
-    }
-  }, 2500); // ajusta si tu build necesita más tiempo
+    startARDiv.style.visibility = "hidden";
+  }, 500);
 
-}).catch((message) => {
-  alert("Error al cargar Unity: " + message);
-  console.error("Unity Loader Error:", message);
-});
-        };
-        document.body.appendChild(script);
+  // 🔧 Configuración Unity
+  var buildUrl = "Build";
+  var loaderUrl = buildUrl + "/ColombiAsombrosa.loader.js";
+  var config = {
+    dataUrl: buildUrl + "/ColombiAsombrosa.data.unityweb",
+    frameworkUrl: buildUrl + "/ColombiAsombrosa.framework.js.unityweb",
+    codeUrl: buildUrl + "/ColombiAsombrosa.wasm.unityweb",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "Digital Clay",
+    productName: "Colombia Asombrosa",
+    productVersion: "1.1",
+    showBanner: unityShowBanner,
+    cacheControl: function (url) {
+      if (!url) return "no-store";
+      if (url.match(/\.data/) || url.match(/\.bundle/)) return "must-revalidate";
+      return "no-store";
+    },
+    arguments: [],
+    webglContextAttributes: {
+      preserveDrawingBuffer: true
+    }
+  };
+
+  // 🧠 Adaptación móvil
+  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    var meta = document.createElement('meta');
+    meta.name = 'viewport';
+    meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+    document.getElementsByTagName('head')[0].appendChild(meta);
+  }
+
+  // 🔁 Cargar el loader
+  loadingBar.style.display = "block";
+  var script = document.createElement("script");
+  script.src = loaderUrl;
+
+  script.onload = () => {
+    createUnityInstance(canvas, config, (progress) => {
+      progressBarFull.style.width = 100 * progress + "%";
+    }).then((unityInstance) => {
+      loadingBar.style.display = "none";
+      window.unityInstance = unityInstance;
+
+      // 🎥 Cámara
+      if (window.permissionsGranted) {
+        RequestWebcam();
       }
+
+      // 🎧 Exponer UnityAudioContext en cuanto esté disponible
+      let tryExpose = setInterval(() => {
+        if (typeof ExposeUnityAudioContext === "function") {
+          console.log("🧠 Función encontrada. Ejecutando exposición...");
+          ExposeUnityAudioContext();
+          clearInterval(tryExpose);
+        } else {
+          console.warn("⌛ Esperando que ExposeUnityAudioContext esté disponible...");
+        }
+      }, 300); // revisa cada 300ms
+    }).catch((message) => {
+      alert("Error al cargar Unity: " + message);
+      console.error("Unity Loader Error:", message);
+    });
+  };
+
+  document.body.appendChild(script);
+}
       //Set Facing Mode here ('environment', 'user', '')
 		window.unityFacingMode = "environment"
       window.WEBCAM_SETTINGS = {
