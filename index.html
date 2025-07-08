@@ -134,116 +134,121 @@
 	 
 	   
 	  <script>
-     function StartAR() {
+   function StartAR() {
   // 🔒 UI inicial
-  let button = document.getElementById("startARButton");
+  const button = document.getElementById("startARButton");
   button.disabled = true;
   button.style.display = "none";
 
-  let select = document.getElementById("chooseCamSel");
+  const select = document.getElementById("chooseCamSel");
   select.disabled = true;
   select.style.display = "none";
 
-  var startARDiv = document.querySelector("#startARDiv");
+  const startARDiv = document.querySelector("#startARDiv");
   startARDiv.style.opacity = 0;
   setTimeout(() => {
     startARDiv.style.visibility = "hidden";
   }, 500);
 
-  // 🔧 Configuración Unity
-  var buildUrl = "Build";
-  var loaderUrl = buildUrl + "/ColombiAsombrosa.loader.js";
-  var config = {
-    dataUrl: buildUrl + "/ColombiAsombrosa.data.unityweb",
-    frameworkUrl: buildUrl + "/ColombiAsombrosa.framework.js.unityweb",
-    codeUrl: buildUrl + "/ColombiAsombrosa.wasm.unityweb",
-    streamingAssetsUrl: "StreamingAssets",
-    companyName: "Digital Clay",
-    productName: "Colombia Asombrosa",
-    productVersion: "1.1",
-    showBanner: unityShowBanner,
-    cacheControl: function (url) {
-      if (!url) return "no-store";
-      if (url.match(/\.data/) || url.match(/\.bundle/)) return "must-revalidate";
-      return "no-store";
-    },
-    arguments: [],
-    webglContextAttributes: {
-      preserveDrawingBuffer: true
-    }
-  };
+  // 🔧 Cargar AudioBridge.js antes del loader Unity
+  const audioBridge = document.createElement("script");
+  audioBridge.src = "AudioBridge.js";
 
-  // 🧠 Adaptación móvil
-  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-    var meta = document.createElement('meta');
-    meta.name = 'viewport';
-    meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-    document.getElementsByTagName('head')[0].appendChild(meta);
-  }
+  audioBridge.onload = () => {
+    console.log("✅ AudioBridge.js cargado y listo");
 
-  // 🔁 Cargar el loader
-  loadingBar.style.display = "block";
-  var script = document.createElement("script");
-  script.src = loaderUrl;
-
-  script.onload = () => {
-    createUnityInstance(canvas, config, (progress) => {
-      progressBarFull.style.width = 100 * progress + "%";
-    }).then((unityInstance) => {
-      loadingBar.style.display = "none";
-      window.unityInstance = unityInstance;
-	    // 🔍 Diagnóstico WebAssembly y entorno Unity
-
-console.log("🧪 🔹 Unity Instance");
-console.log("▶️ window.unityInstance:", window.unityInstance);
-console.log("▶️ window.unityInstance.Module:", window.unityInstance?.Module);
-console.log("▶️ window.unityInstance.Module.audioContext:", window.unityInstance?.Module?.audioContext);
-
-console.log("\n🧪 🔹 Module JS");
-console.log("▶️ typeof Module:", typeof Module);
-console.log("▶️ Module keys:", Object.keys(Module || {}));
-console.log("▶️ Module.audioContext:", Module?.audioContext);
-
-console.log("\n🧪 🔹 LibraryManager");
-console.log("▶️ typeof LibraryManager:", typeof LibraryManager);
-console.log("▶️ typeof LibraryManager.library:", typeof LibraryManager?.library);
-
-console.log("\n🧪 🔹 Función ExposeUnityAudioContext");
-console.log("▶️ typeof ExposeUnityAudioContext:", typeof ExposeUnityAudioContext);
-console.log("▶️ window.UnityAudioContext:", window.UnityAudioContext ?? "❌ No definido");
-
-      // 🎥 Cámara
-      if (window.permissionsGranted) {
-        RequestWebcam();
+    const buildUrl = "Build";
+    const loaderUrl = buildUrl + "/ColombiAsombrosa.loader.js";
+    const config = {
+      dataUrl: buildUrl + "/ColombiAsombrosa.data.unityweb",
+      frameworkUrl: buildUrl + "/ColombiAsombrosa.framework.js.unityweb",
+      codeUrl: buildUrl + "/ColombiAsombrosa.wasm.unityweb",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "Digital Clay",
+      productName: "Colombia Asombrosa",
+      productVersion: "1.1",
+      showBanner: unityShowBanner,
+      arguments: [],
+      cacheControl: (url) => {
+        if (!url) return "no-store";
+        return url.match(/\.data|\.bundle/) ? "must-revalidate" : "no-store";
+      },
+      webglContextAttributes: {
+        preserveDrawingBuffer: true
       }
+    };
 
-      // 🎧 Exponer UnityAudioContext en cuanto esté disponible
-      let tryExpose = setInterval(() => {
-        if (typeof ExposeUnityAudioContext === "function") {
-          console.log("🧠 Función encontrada. Ejecutando exposición...");
-          ExposeUnityAudioContext();
-          clearInterval(tryExpose);
-        } else {
-          console.warn("⌛ Esperando que ExposeUnityAudioContext esté disponible...");
+    // 🧠 Adaptación móvil
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      const meta = document.createElement("meta");
+      meta.name = "viewport";
+      meta.content = "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
+      document.head.appendChild(meta);
+    }
+
+    // 🔁 Cargar loader Unity
+    loadingBar.style.display = "block";
+    const unityLoader = document.createElement("script");
+    unityLoader.src = loaderUrl;
+
+    unityLoader.onload = () => {
+      console.log("✅ Loader de Unity cargado");
+
+      createUnityInstance(canvas, config, (progress) => {
+        progressBarFull.style.width = 100 * progress + "%";
+      }).then((unityInstance) => {
+        window.unityInstance = unityInstance;
+        loadingBar.style.display = "none";
+
+        // 🎧 Diagnóstico agrupado
+        console.log("🧪 🔹 Unity Instance");
+        console.log("▶️ window.unityInstance:", unityInstance);
+        console.log("▶️ unityInstance.Module:", unityInstance?.Module);
+        console.log("▶️ unityInstance.Module.audioContext:", unityInstance?.Module?.audioContext);
+
+        console.log("\n🧪 🔹 Module JS");
+        console.log("▶️ typeof Module:", typeof Module);
+        console.log("▶️ Module keys:", Object.keys(Module || {}));
+        console.log("▶️ Module.audioContext:", Module?.audioContext);
+
+        console.log("\n🧪 🔹 Función ExposeUnityAudioContext");
+        console.log("▶️ typeof ExposeUnityAudioContext:", typeof ExposeUnityAudioContext);
+        console.log("▶️ window.UnityAudioContext:", window.UnityAudioContext ?? "❌ No definido");
+
+        // 🎥 Permiso cámara
+        if (window.permissionsGranted) {
+          RequestWebcam();
         }
-      }, 300); // revisa cada 300ms
-    }).catch((message) => {
-      alert("Error al cargar Unity: " + message);
-      console.error("Unity Loader Error:", message);
-    });
+
+        // 🎧 Ejecutar función cuando esté lista
+        let tryExpose = setInterval(() => {
+          if (typeof ExposeUnityAudioContext === "function") {
+            console.log("🧠 Función encontrada. Ejecutando exposición...");
+            ExposeUnityAudioContext();
+            clearInterval(tryExpose);
+          } else {
+            console.warn("⌛ Esperando que ExposeUnityAudioContext esté disponible...");
+          }
+        }, 300);
+      }).catch((err) => {
+        console.error("❌ Error al crear instancia Unity:", err);
+        ShowError("No se pudo cargar la experiencia");
+      });
+    };
+
+    document.body.appendChild(unityLoader);
   };
 
-  document.body.appendChild(script);
+  document.head.appendChild(audioBridge);
+
+  // 🎥 Configuración de cámara
+  window.unityFacingMode = "environment";
+  window.WEBCAM_SETTINGS = {
+    video: { facingMode: unityFacingMode },
+    audio: false
+  };
+  window.requestingForPermissions = false;
 }
-      //Set Facing Mode here ('environment', 'user', '')
-		window.unityFacingMode = "environment"
-      window.WEBCAM_SETTINGS = {
-          video: {
-              facingMode: unityFacingMode,
-          },
-          audio: false
-      };
-      window.requestingForPermissions = false;
       async function RequestWebcam(){
           window.requestingForPermissions = true;
           try{
