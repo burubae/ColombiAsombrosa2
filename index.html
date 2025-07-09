@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Colombia Asombrosa</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unity WebGL Player | Colombia Asombrosa</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
     <link rel="manifest" href="manifest.webmanifest">
@@ -24,10 +24,10 @@
     <video id="webcam-video" muted autoplay playsinline style="width:1px;position:absolute"></video>
     <canvas id="video-canvas" style="width:100%; height:100%; object-fit:cover; position:absolute"></canvas>
     <div id="startARDiv" class="ctaDiv" style="background: #2f2e32">
-      <select id="chooseCamSel" aria-label="Seleccionar cámara" style="visibility: hidden; background: transparent; border: .05vh solid white; border-radius: max(0.5vw, 0.5vh); color:white; font-size: max(1.5vw, 1.5vh); position: absolute; bottom: 80px" 
+      <select id="chooseCamSel" style="visibility: hidden; background: transparent; border: .05vh solid white; border-radius: max(0.5vw, 0.5vh); color:white; font-size: max(1.5vw, 1.5vh); position: absolute; bottom: 80px" 
         onchange="SelectCam()"></select>
-      <p style="text-align: center; width:min(60vw, 60vh);">Esta experiencia de realidad aumentada requiere acceso a la cámara de tu dispositivo</p>
-      <button id="startARButton" onclick="StartAR()" style="visibility: hidden">PERMITIR ACCESO</button>
+      <p style="text-align: center; width:min(60vw, 60vh);">This augmented reality experience requires access to your device's camera</p>
+      <button id="startARButton" onclick="StartAR()" style="visibility: hidden">ALLOW ACCESS</button>
       <br><br><br>
     </div>
     <div id="screenshotDiv" style="visibility: hidden; opacity: 0;" class="ctaDiv">
@@ -39,7 +39,7 @@
               <line x1="3" y1="21" x2="21" y2="3" stroke="#999" stroke-width="2.5"></line>
             </svg>
           </button> 
-          <p style="font-size: max(1vw, 1vh); color: #fff6" >MANTEN PRESIONADO PARA GUARDAR O COMPARTIR ESTA FOTO</p>
+          <p style="font-size: max(1vw, 1vh); color: #fff6" >Press and hold to save or share this screenshot</p>
           </div>
     </div>
     <div id="confirmUrlDiv" style="visibility: hidden; opacity: 0;" class="ctaDiv">
@@ -47,8 +47,8 @@
 ">
             <p id="confirmUrlText" style="text-align: center; width:80%; overflow: hidden; text-overflow: ellipsis;">Are you sure you want to visit url.com?</p>
             <div style="width: 100%">
-                <button style="width: 100%; margin-bottom: 15px;" onclick="window.open(newUrlString, '_blank').focus(); HideConfirmUrl()">VISITAR SITIO</button>
-                <button style="width: 100%" onclick="HideConfirmUrl()">ATRAS</button>
+                <button style="width: 100%; margin-bottom: 15px;" onclick="window.open(newUrlString, '_blank').focus(); HideConfirmUrl()">VISIT SITE</button>
+                <button style="width: 100%" onclick="HideConfirmUrl()">GO BACK</button>
             </div>
         </div>
     </div>
@@ -130,125 +130,65 @@
         }
         updateBannerVisibility();
       }
-    </script>
-	 
-	   
-	  <script>
-   function StartAR() {
-  // 🔒 UI inicial
-  const button = document.getElementById("startARButton");
-  button.disabled = true;
-  button.style.display = "none";
-
-  const select = document.getElementById("chooseCamSel");
-  select.disabled = true;
-  select.style.display = "none";
-
-  const startARDiv = document.querySelector("#startARDiv");
-  startARDiv.style.opacity = 0;
-  setTimeout(() => {
-    startARDiv.style.visibility = "hidden";
-  }, 500);
-
-  // 🔧 Cargar AudioBridge.js antes del loader Unity
-  const audioBridge = document.createElement("script");
-  audioBridge.src = "AudioBridge.js";
-
-  audioBridge.onload = () => {
-    console.log("✅ AudioBridge.js cargado y listo");
-
-    const buildUrl = "Build";
-    const loaderUrl = buildUrl + "/ColombiAsombrosa.loader.js";
-    const config = {
-      dataUrl: buildUrl + "/ColombiAsombrosa.data.unityweb",
-      frameworkUrl: buildUrl + "/ColombiAsombrosa.framework.js.unityweb",
-      codeUrl: buildUrl + "/ColombiAsombrosa.wasm.unityweb",
-      streamingAssetsUrl: "StreamingAssets",
-      companyName: "Digital Clay",
-      productName: "Colombia Asombrosa",
-      productVersion: "1.1",
-      showBanner: unityShowBanner,
-      arguments: [],
-      cacheControl: (url) => {
-        if (!url) return "no-store";
-        return url.match(/\.data|\.bundle/) ? "must-revalidate" : "no-store";
-      },
-      webglContextAttributes: {
-        preserveDrawingBuffer: true
-      }
-    };
-
-    // 🧠 Adaptación móvil
-    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      const meta = document.createElement("meta");
-      meta.name = "viewport";
-      meta.content = "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
-      document.head.appendChild(meta);
-    }
-
-    // 🔁 Cargar loader Unity
-    loadingBar.style.display = "block";
-    const unityLoader = document.createElement("script");
-    unityLoader.src = loaderUrl;
-
-    unityLoader.onload = () => {
-      console.log("✅ Loader de Unity cargado");
-
-      createUnityInstance(canvas, config, (progress) => {
-        progressBarFull.style.width = 100 * progress + "%";
-      }).then((unityInstance) => {
-        window.unityInstance = unityInstance;
-        loadingBar.style.display = "none";
-
-        // 🎧 Diagnóstico agrupado
-        console.log("🧪 🔹 Unity Instance");
-        console.log("▶️ window.unityInstance:", unityInstance);
-        console.log("▶️ unityInstance.Module:", unityInstance?.Module);
-        console.log("▶️ unityInstance.Module.audioContext:", unityInstance?.Module?.audioContext);
-
-        console.log("\n🧪 🔹 Module JS");
-        console.log("▶️ typeof Module:", typeof Module);
-        console.log("▶️ Module keys:", Object.keys(Module || {}));
-        console.log("▶️ Module.audioContext:", Module?.audioContext);
-
-        console.log("\n🧪 🔹 Función ExposeUnityAudioContext");
-        console.log("▶️ typeof ExposeUnityAudioContext:", typeof ExposeUnityAudioContext);
-        console.log("▶️ window.UnityAudioContext:", window.UnityAudioContext ?? "❌ No definido");
-
-        // 🎥 Permiso cámara
-        if (window.permissionsGranted) {
-          RequestWebcam();
+      function StartAR() {
+        var startARDiv = document.querySelector("#startARDiv");
+        startARDiv.style.opacity = 0;
+        setTimeout(()=>{
+          startARDiv.style.visibility = "hidden";
+        }, 500);
+        var buildUrl = "Build";
+        var loaderUrl = buildUrl + "/ColombiAsombrosa.loader.js";
+        var config = {
+          dataUrl: buildUrl + "/ColombiAsombrosa.data.unityweb",
+          frameworkUrl: buildUrl + "/ColombiAsombrosa.framework.js.unityweb",
+          codeUrl: buildUrl + "/ColombiAsombrosa.wasm.unityweb",
+          streamingAssetsUrl: "StreamingAssets",
+          companyName: "Digital Clay",
+          productName: "Colombia Asombrosa",
+          productVersion: "1.1",
+          showBanner: unityShowBanner,
+        };
+        // By default Unity keeps WebGL canvas render target size matched with
+        // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+        // Set this to false if you want to decouple this synchronization from
+        // happening inside the engine, and you would instead like to size up
+        // the canvas DOM size and WebGL render target sizes yourself.
+        // config.matchWebGLToCanvasSize = false;
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+          // Mobile device style: fill the whole browser client area with the game canvas:
+          var meta = document.createElement('meta');
+          meta.name = 'viewport';
+          meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+          document.getElementsByTagName('head')[0].appendChild(meta);
         }
-
-        // 🎧 Ejecutar función cuando esté lista
-        let tryExpose = setInterval(() => {
-          if (typeof ExposeUnityAudioContext === "function") {
-            console.log("🧠 Función encontrada. Ejecutando exposición...");
-            ExposeUnityAudioContext();
-            clearInterval(tryExpose);
-          } else {
-            console.warn("⌛ Esperando que ExposeUnityAudioContext esté disponible...");
-          }
-        }, 300);
-      }).catch((err) => {
-        console.error("❌ Error al crear instancia Unity:", err);
-        ShowError("No se pudo cargar la experiencia");
-      });
-    };
-
-    document.body.appendChild(unityLoader);
-  };
-
-  document.head.appendChild(audioBridge);
-
-  // 🎥 Configuración de cámara
-  window.unityFacingMode = "environment";
-  window.WEBCAM_SETTINGS = {
-    video: { facingMode: unityFacingMode },
-    audio: false
-  };
-  window.requestingForPermissions = false;
-}
+        loadingBar.style.display = "block";
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+          createUnityInstance(canvas, config, (progress) => {
+            progressBarFull.style.width = 100 * progress + "%";
+          }).then((unityInstance) => {
+            loadingBar.style.display = "none";
+            
+            window.unityInstance = unityInstance;
+            if(window.permissionsGranted) {
+              RequestWebcam();
+            }
+          }).catch((message) => {
+            alert(message);
+          });
+        };
+        document.body.appendChild(script);
+      }
+      //Set Facing Mode here ('environment', 'user', '')
+		window.unityFacingMode = "environment"
+      window.WEBCAM_SETTINGS = {
+          video: {
+              facingMode: unityFacingMode,
+          },
+          audio: false
+      };
+      window.requestingForPermissions = false;
       async function RequestWebcam(){
           window.requestingForPermissions = true;
           try{
@@ -431,129 +371,6 @@
           //place global settings here
           INTERNAL_SMOOTHFACTOR_POS: .075,
       }
-	      
-</script>
-<script>
-let isRecording = false;
-let frameInterval;
-let audioStream;
-let mediaRecorder;
-let audioChunks = [];
-let streamId = null;
-
-const BACKEND_URL = "https://colombia-asombrosa-backend-grabadora.onrender.com";
-
-window.StartJSRecording = async function (frameRate = 10) {
-  const canvas = document.querySelector("#unity-canvas");
-  streamId = Date.now();
-  isRecording = true;
-  audioChunks = [];
-
-  try {
-    if (!window.UnityAudioContext || !UnityAudioContext.createMediaStreamDestination) {
-      console.warn("🎧 UnityAudioContext no disponible. Grabando sin audio.");
-    } else {
-      const destination = UnityAudioContext.createMediaStreamDestination();
-      UnityAudioContext.destination.connect(destination);
-      audioStream = destination.stream;
-
-      mediaRecorder = new MediaRecorder(audioStream);
-      mediaRecorder.ondataavailable = e => {
-        if (e.data.size > 0) audioChunks.push(e.data);
-      };
-      mediaRecorder.start();
-    }
-  } catch (e) {
-    console.warn("🎧 Error al inicializar audio:", e);
-  }
-
-  let frameCount = 0;
-  frameInterval = setInterval(() => {
-    if (!isRecording) return;
-    canvas.toBlob(blob => {
-      if (blob) {
-        const formData = new FormData();
-        const filename = `${streamId}_frame_${String(frameCount).padStart(4, '0')}.jpg`;
-        formData.append("frame", blob, filename);
-        fetch(`${BACKEND_URL}/upload-frame`, { method: "POST", body: formData });
-        frameCount++;
-      }
-    }, "image/jpeg");
-  }, 1000 / frameRate);
-};
-
-window.StopJSRecording = function () {
-  isRecording = false;
-  clearInterval(frameInterval);
-
-  if (mediaRecorder && mediaRecorder.state !== "inactive") {
-    mediaRecorder.onstop = () => {
-      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-      const formData = new FormData();
-      formData.append("audio", audioBlob, `${streamId}_audio.webm`);
-
-      const loader = document.createElement("div");
-      loader.innerHTML = `
-        <div style="
-          background: rgba(0, 0, 0, 0.85);
-          color: white;
-          padding: 0.7rem 1.5rem;
-          border-radius: 20px;
-          font-family: sans-serif;
-          font-size: 1rem;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-          animation: fadeIn 0.3s ease;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        ">
-          <span style="font-size: 1.5rem;">⬇️</span>
-          <span>Descargando video...</span>
-        </div>
-      `;
-      Object.assign(loader.style, {
-        position: "fixed",
-        top: "16px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        zIndex: 9999
-      });
-      document.body.appendChild(loader);
-
-      const style = document.createElement("style");
-      style.textContent = `
-        @keyframes fadeIn {
-          from { opacity: 0; transform: scale(0.95) translateX(-50%); }
-          to   { opacity: 1; transform: scale(1) translateX(-50%); }
-        }
-      `;
-      document.head.appendChild(style);
-
-      fetch(`${BACKEND_URL}/upload-audio`, { method: "POST", body: formData })
-        .then(() =>
-          fetch(`${BACKEND_URL}/finalize`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ streamId })
-          })
-        )
-        .then(res => res.blob())
-        .then(videoBlob => {
-          document.body.removeChild(loader);
-          const url = URL.createObjectURL(videoBlob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "grabacion_final.mp4";
-          a.click();
-          URL.revokeObjectURL(url);
-        });
-    };
-
-    mediaRecorder.stop();
-  }
-};
-</script>
-
-   
+    </script>
   </body>
 </html>
