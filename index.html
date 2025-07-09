@@ -26,8 +26,8 @@
     <div id="startARDiv" class="ctaDiv" style="background: #2f2e32">
       <select id="chooseCamSel" style="visibility: hidden; background: transparent; border: .05vh solid white; border-radius: max(0.5vw, 0.5vh); color:white; font-size: max(1.5vw, 1.5vh); position: absolute; bottom: 80px" 
         onchange="SelectCam()"></select>
-      <p style="text-align: center; width:min(60vw, 60vh);">This augmented reality experience requires access to your device's camera</p>
-      <button id="startARButton" onclick="StartAR()" style="visibility: hidden">ALLOW ACCESS</button>
+      <p style="text-align: center; width:min(60vw, 60vh);">Esta experiencia de realidad aumentada requiere acceso a la cámara del dispositivo</p>
+      <button id="startARButton" onclick="StartAR()" style="visibility: hidden">PERMITIR ACCESO</button>
       <br><br><br>
     </div>
     <div id="screenshotDiv" style="visibility: hidden; opacity: 0;" class="ctaDiv">
@@ -39,7 +39,7 @@
               <line x1="3" y1="21" x2="21" y2="3" stroke="#999" stroke-width="2.5"></line>
             </svg>
           </button> 
-          <p style="font-size: max(1vw, 1vh); color: #fff6" >Press and hold to save or share this screenshot</p>
+          <p style="font-size: max(1vw, 1vh); color: #fff6" >MANTEN PRESIONADO PARA GUARDAR O COMPARTIR ESTA FOTO</p>
           </div>
     </div>
     <div id="confirmUrlDiv" style="visibility: hidden; opacity: 0;" class="ctaDiv">
@@ -131,6 +131,14 @@
         updateBannerVisibility();
       }
       function StartAR() {
+ // Disable the button after clicking
+        let button = document.getElementById("startARButton");
+        button.disabled = true;
+        button.style.display = "none";
+        // Disable the selector after clicking
+        let select = document.getElementById("chooseCamSel");
+        select.disabled = true;
+        select.style.display = "none";
         var startARDiv = document.querySelector("#startARDiv");
         startARDiv.style.opacity = 0;
         setTimeout(()=>{
@@ -169,7 +177,10 @@
             progressBarFull.style.width = 100 * progress + "%";
           }).then((unityInstance) => {
             loadingBar.style.display = "none";
-            
+            window.uarGameInstance=unityInstance;
+          fullscreenButton.onclick = () => {
+            unityInstance.SetFullscreen(1);
+          }
             window.unityInstance = unityInstance;
             if(window.permissionsGranted) {
               RequestWebcam();
