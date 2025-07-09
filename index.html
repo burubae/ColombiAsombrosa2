@@ -178,9 +178,8 @@
           }).then((unityInstance) => {
             loadingBar.style.display = "none";
             window.uarGameInstance=unityInstance;
-          fullscreenButton.onclick = () => {
-            unityInstance.SetFullscreen(1);
-          }
+          
+          
             window.unityInstance = unityInstance;
             if(window.permissionsGranted) {
               RequestWebcam();
